@@ -1,0 +1,56 @@
+# Your Tui Music Player
+
+Scaffolded with `create-rezi` using the **Minimal Utility TUI** template.
+
+## What This Template Demonstrates
+
+- A single-screen TUI with no routing overhead.
+- `ui.page()` layout shell with panelized sections and intent-based button actions.
+- Minimal state + reducer flow with just a few actions.
+- Keybindings for quit/help/theme/counter updates.
+- Signal-safe startup and shutdown pattern.
+- Built-in error display pattern for small utility tools.
+- Theme-driven root/panel styling with semantic status callouts.
+
+## File Layout
+
+- `src/types.ts`: state and action types.
+- `src/theme.ts`: theme catalog + template identity constants.
+- `src/helpers/`: reducer + keybinding helpers.
+- `src/screens/`: single screen renderer.
+- `src/main.ts`: app bootstrapping, keybindings, lifecycle.
+- `src/__tests__/`: reducer, render, and keybinding examples.
+
+## Quickstart
+
+```bash
+# npm
+npm install
+npm run start
+
+# bun
+bun install
+bun run start
+```
+
+## Dev Loop (HSR)
+
+```bash
+# npm
+npm run dev
+
+# bun
+bun run dev
+```
+
+`npm run dev` / `bun run dev` runs `tsx watch src/main.ts --hsr`. The `--hsr`
+flag wires `createNodeApp({ hotReload: ... })` + `app.replaceView(...)` so view
+edits hot-swap while preserving app state, focus, and form/input context.
+
+## Controls
+
+- `q` or `ctrl+c`: Quit
+- `?` or `h`: Toggle help
+- `+` / `-`: Increment/decrement counter
+- `t`: Cycle theme
+- `e`: Trigger example error message

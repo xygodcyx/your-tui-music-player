@@ -62,3 +62,7 @@ export async function pngBase64ToRgba(base64Data: string) {
 export async function sleep(ms: number) {
   return new Promise(resove => setTimeout(resove, ms))
 }
+
+export function moreErrorDetail<T extends Error>(error: T, depth: number = 1) {
+  return error.stack.split('\n').slice(2, 2 + depth).toString().trim()
+}

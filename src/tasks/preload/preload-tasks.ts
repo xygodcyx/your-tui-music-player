@@ -1,19 +1,21 @@
 import type { AppContext } from '../../types'
-import type { PreloadTask } from './types'
+import type { PreloadTask, TaskReturnMap } from '../types'
 import { AppManager } from '../../app'
 import { tr } from '../../i18n/tr'
-import { checkLoginStatus } from '../tasks/login-task'
-import { loadPlayTrackTask } from '../tasks/play-track-task'
+import { checkLoginStatus } from '../login-task'
+import { loadPlayTrackTask } from '../play-track-task'
+import { TaskId } from '../types'
 
 export const PreloadTasks: PreloadTask[] = [
   {
-    id: 'check-login-status',
+    id: TaskId.CHECK_LOGIN_STATUS,
     label: tr('checkLoginStatus'),
     run: checkLoginStatus,
   },
   {
-    id: 'loading-play-track',
+    id: TaskId.LOAD_PLAY_TRACK,
     label: tr('loadingPlayTrack'),
+    deps: [TaskId.CHECK_LOGIN_STATUS],
     run: loadPlayTrackTask,
   },
 ]
@@ -23,6 +25,11 @@ export async function runPreload(ctx: AppContext) {
 
   const state = ctx.useAppState(s => s)
   const tasks = state.preload.tasks
+
+  const taskRunResultMap: TaskReturnMap = {
+    CHECK_LOGIN_STATUS: undefined,
+    LOAD_PLAY_TRACK: undefined,
+  }
 
   // set all status to pending
   AppManager.Instance.updateState(s =>
@@ -50,7 +57,18 @@ export async function runPreload(ctx: AppContext) {
     ))
 
     try {
-      await PreloadTasks.find(t => t.id === task.id)!.run(ctx)
+      const curRun = PreloadTasks.find(t => t.id === task.id)!
+
+      if (curRun.deps) {
+        for (const dep of curRun.deps) {
+          if (!taskRunResultMap[dep]) {
+            // dep break
+            return
+          }
+        }
+      }
+      const result = await curRun.run(ctx, taskRunResultMap)
+      taskRunResultMap[task.id] = result
 
       AppManager.Instance.updateState(s => (
         {

@@ -1,11 +1,12 @@
 import type { RequestBaseConfig } from '@neteasecloudmusicapienhanced/api'
-import type { LoginStatusInfo, PlayTrackInfo } from './types'
+import type { LoginStatusApi, PlayTrackList, PlayTrackListApi } from './types'
 import { existsSync, mkdir, readFileSync, writeFileSync } from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 import api from '@neteasecloudmusicapienhanced/api'
-import { Singleton } from '../base/singleton'
-import { LogDebug } from '../log'
+import { validateScenarioDefinition } from '@rezi-ui/core/testing'
+import { Singleton } from '../../base/singleton'
+import { LogDebug } from '../../log'
 
 interface AppAuthData {
   cookie: string
@@ -83,12 +84,41 @@ export class ClientManager extends Singleton {
     this.initAuth()
   }
 
-  async checkLoginStatus(): Promise<LoginStatusInfo> {
-    const { body: { data } } = await api.login_status(this.baseConfig)
+  async createQr(): Promise<{ unikey: string, qrurl: string, qrimg: string }> {
+    const { body: { data: { unikey } } }: any = await api.login_qr_key(this.baseConfig)
+    const { body } = await api.login_qr_create({ ...this.baseConfig, key: unikey, qrimg: true })
+    const data = body.data as { qrimg: string, qrurl: string }
+    const { qrurl, qrimg } = data
+
+    return {
+      unikey,
+      qrurl,
+      qrimg,
+    }
+  }
+
+  async checkQr(qrkey: string): Promise<{ code: number, message: string, cookie: string }> {
+    const res = await api.login_qr_check({ ...this.baseConfig, key: qrkey })
+    const body = res.body as { code: number, message: string, cookie: string }
+    const { code, message, cookie } = body
+
+    return {
+      code,
+      message,
+      cookie,
+    }
+  }
+
+  async checkLoginStatus(): Promise<LoginStatusApi> {
+    const { body }: api.Response = await api.login_status(this.baseConfig)
+    const data = body.data as { code: number, account: { id: number }, profile: { nickname: string, avatarUrl: string } }
+
     let code = data.code
+
     if (!data.account) {
       code = -1
     }
+
     const id = data.account?.id ?? null
     const nickname = data.profile?.nickname ?? null
     const avatarUrl = data.profile?.avatarUrl ?? null
@@ -100,27 +130,34 @@ export class ClientManager extends Singleton {
     }
   }
 
-  async createQr(): Promise<{ unikey: string, qrurl: string, qrimg: string }> {
-    const { body: { data: { unikey } } } = await api.login_qr_key(this.baseConfig)
-    const { body: { data: { qrurl, qrimg } } } = await api.login_qr_create({ ...this.baseConfig, key: unikey, qrimg: true })
-    return {
-      unikey,
-      qrurl,
-      qrimg,
-    }
-  }
+  async loadUserPlayTrack(uid: number): Promise<PlayTrackListApi> {
+    const { body } = await api.user_playlist({
+      uid,
+      offset: 0,
+      limit: 0,
+      ...this.baseConfig,
+    })
 
-  async checkQr(qrkey: string): Promise<{ code: number, message: string, cookie: string }> {
-    const { body: { code, message, cookie } } = await api.login_qr_check({ ...this.baseConfig, key: qrkey })
+    let code = body.code
+
+    LogDebug(body.playlist === null)
+
+    if (!body.playlist) {
+      code = -1
+    }
+
+    const temp = (body.playlist ?? []) as PlayTrackList
+
+    const playlist: PlayTrackList = temp.map(v => ({
+      id: v.id,
+      name: v.name,
+      coverImgUrl: v.coverImgUrl,
+      nickname: v.nickname,
+    }))
+
     return {
       code,
-      message,
-      cookie,
+      playlist,
     }
-  }
-
-  async loadUserPlayTrack() {
-    const { body, status } = await api.user_subcount(this.baseConfig)
-    LogDebug(body)
   }
 }

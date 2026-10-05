@@ -3,7 +3,7 @@ import type { AppState, RouterContext } from './types'
 import { ui } from '@rezi-ui/core'
 import { CommandManager } from './commend'
 import { renderMainScreen } from './screens/main-screen'
-import { renderPreloadScreen } from './screens/preload/preload-screen'
+import { renderPreloadScreen } from './screens/preload-screen'
 
 type MainScreenRenderer = typeof renderMainScreen
 type PreloadScreenRenderer = typeof renderPreloadScreen

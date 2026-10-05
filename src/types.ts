@@ -1,10 +1,8 @@
 import type { LogLevel, RouteRenderContext, TokenCount, WidgetContext } from '@rezi-ui/core'
+import type { PlayTrackList } from './helpers/apis/types'
+import type { TaskIdEnum } from './tasks/types'
 
 export type WithOptional<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>
-export type MainScreenHandlers = Readonly<{
-  onCycleTheme: () => void
-  onToggleHelp: () => void
-}>
 
 export type ThemeName = 'nord' | 'dark' | 'light'
 
@@ -37,7 +35,7 @@ export interface UserInfo {
 export type TaskStatus = 'pending' | 'running' | 'done' | 'failed'
 
 export interface TaskState {
-  id: string
+  id: TaskIdEnum
   label: string
   status: TaskStatus
   error?: string
@@ -49,6 +47,7 @@ export interface AppState {
     phase: 'loading' | 'done' | 'failed'
     currentTaskId: string | null
   }
+  userPlayTrack: PlayTrackList
   needLogin: boolean
   showHelp: boolean
   themeName: ThemeName

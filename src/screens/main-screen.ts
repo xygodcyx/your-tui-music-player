@@ -1,9 +1,14 @@
 import type { VNode } from '@rezi-ui/core'
-import type { AppState, MainScreenHandlers, RouterContext } from '../types'
+import type { AppState, RouterContext } from '../types'
 import { ui } from '@rezi-ui/core'
 import { stylesForTheme } from '../theme'
 import { renderHelpPopup } from './help-popup'
 import { LoginPanel } from './login-panel'
+
+export type MainScreenHandlers = Readonly<{
+  onCycleTheme: () => void
+  onToggleHelp: () => void
+}>
 
 export function renderMainScreen(state: AppState, handlers: MainScreenHandlers, _ctx: RouterContext): VNode {
   const styles = stylesForTheme(state.themeName)

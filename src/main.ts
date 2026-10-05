@@ -1,7 +1,7 @@
 import process from 'node:process'
 import { AppManager } from './app'
 import { CommandManager } from './commend'
-import { ClientManager } from './helpers/apis'
+import { ClientManager } from './helpers/apis/apis'
 import { ClearAllLog } from './log'
 
 function onSignal() {

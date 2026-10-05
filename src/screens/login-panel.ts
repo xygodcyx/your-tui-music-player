@@ -1,9 +1,9 @@
 import type { AppState } from '../types'
 import { defineWidget, ui, useAsync } from '@rezi-ui/core'
-import { ClientManager } from '../helpers/apis'
+import { ClientManager } from '../helpers/apis/apis'
 import { pngBase64ToRgba } from '../helpers/utils'
+import { checkLoginStatus } from '../tasks/login-task'
 import { StatefulPanel } from '../widgets/stateful-panel'
-import { checkLoginStatus } from './tasks/login-task'
 
 const QrCheck = defineWidget<{ key?: string, qrkey: string }, AppState>((props, ctx) => {
   const [tick, setTick] = ctx.useState(0)
@@ -28,7 +28,7 @@ const QrCheck = defineWidget<{ key?: string, qrkey: string }, AppState>((props, 
   }
 
   if (error) {
-    return ui.errorDisplay(error.message)
+    return ui.errorDisplay((error as Error).message)
   }
 
   setMessage(data.message)

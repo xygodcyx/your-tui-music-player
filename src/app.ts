@@ -1,17 +1,14 @@
 import type { AppAction } from './commend'
 import type { LanguageCode } from './i18n/tr'
-import type { MainScreenModule } from './router'
 import type { AppState } from './types'
-import process from 'node:process'
 import { createNodeApp } from '@rezi-ui/node'
 import { Singleton } from './base/singleton'
-import { ClearAllLog } from './log'
-import { buildMainView, routes } from './router'
-import { PreloadTasks } from './screens/preload/preload-tasks'
+import { routes } from './router'
+import { PreloadTasks } from './tasks/preload/preload-tasks'
 import { cycleTheme, DEFAULT_THEME_NAME, themeSpec } from './theme'
 
-const { REZI_HSR } = process.env
-const enableHsr = process.argv.includes('--hsr') || REZI_HSR === '1'
+// const { REZI_HSR } = process.env
+// const enableHsr = process.argv.includes('--hsr') || REZI_HSR === '1'
 
 export class AppManager extends Singleton {
   public static get Instance() {
@@ -35,6 +32,7 @@ export class AppManager extends Singleton {
       phase: 'loading',
       currentTaskId: null,
     },
+    userPlayTrack: [],
   }
 
   public get Root() {
@@ -55,25 +53,6 @@ export class AppManager extends Singleton {
     theme: themeSpec(this.initialState.themeName).theme,
     routes,
     initialRoute: 'preload',
-    ...(enableHsr
-      ? {
-          hotReload: {
-            viewModule: new URL('./screens/*', import.meta.url),
-            moduleRoot: new URL('./', import.meta.url),
-            resolveView: (moduleNs: unknown) => {
-              const render = (moduleNs as MainScreenModule).renderMainScreen
-              ClearAllLog()
-              if (typeof render !== 'function') {
-                throw new TypeError(
-                  'HSR: ./screens/main-screen.ts must export renderOverviewScreen(state, actions)',
-                )
-              }
-              return buildMainView(render)
-            },
-          },
-        }
-      : {}
-    ),
   })
 
   reduceState(state: AppState, action: AppAction): AppState {

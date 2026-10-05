@@ -1,16 +1,17 @@
 import type { VNode } from '@rezi-ui/core'
-import type { AppState, RouterContext } from '../../types'
-import type { PreloadScreenHandlers } from './types'
+import type { AppState, RouterContext } from '../types'
 import { defineWidget, ui } from '@rezi-ui/core'
-import { LogDebug } from '../../log'
-import { PRODUCT_NAME } from '../../theme'
-import { runPreload } from './preload-tasks'
+import { runPreload } from '../tasks/preload/preload-tasks'
+import { PRODUCT_NAME } from '../theme'
+
+export type PreloadScreenHandlers = Readonly<{
+  onRetry: () => void
+}>
 
 const preloadLayer = defineWidget<{ key?: string, routerCtx: RouterContext }, AppState>((props, ctx) => {
   const preload = ctx.useAppState(s => s.preload)
   ctx.useEffect(() => {
     runPreload(ctx)
-    LogDebug('runPreload')
   }, [])
 
   ctx.useEffect(() => {
@@ -34,7 +35,13 @@ const preloadLayer = defineWidget<{ key?: string, routerCtx: RouterContext }, Ap
       ui.text(`${preload.phase}`),
       ui.row({ gap: 1 }, [
         currentTask ? ui.text(`Cur Task : ${currentTask.label}`) : null,
-        currentTask ? currentTask.error ? ui.text(`Error :${currentTask.error}`) : null : null,
+        currentTask
+          ? currentTask.error
+            ? ui.text(`Error :${currentTask.error}`, {
+                wrap: true,
+              })
+            : null
+          : null,
       ]),
       // ui.progress(0.42, {
       //   style: { fg: rgb(80, 220, 120) },

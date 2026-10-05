@@ -1,13 +1,12 @@
-import type { LogEntrie, WithOptional } from './types'
-
 import { mkdir } from 'node:fs'
 import { appendFile, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 import _ from 'lodash'
+import { moreErrorDetail } from './helpers/utils'
 
 const LOG_DIR_PATH = 'logs/'
 const RUNNTIME_LOG = true
-const PRELOG = true
+const PRELOG = false
 
 const date = new Date()
 mkdir(LOG_DIR_PATH, { recursive: true }, (_err) => {})
@@ -19,42 +18,35 @@ export function getLogPath(): string {
 
 export function ClearAllLog() {
   if (PRELOG) {
-    appendFile(LOG_PATH, '==================Clear==================\n')
     return
   }
+  appendFile(LOG_PATH, '==================Clear==================\n')
   writeFile(LOG_PATH, '')
 }
 
-type LogExtra = Omit<WithOptional<LogEntrie, 'timestamp' | 'level'>, 'message' | 'id'>
-
 export function LogDebug(...messages: any[]): void
-export function LogDebug(message1: any, extra?: LogExtra): void
 
 export function LogDebug(...messages: any[]) {
-  const hasCleanExtra = messages.length > 1 && messages[messages.length - 1].source
-
-  let extra = {}
-  if (hasCleanExtra) {
-    extra = messages[messages.length - 1]
-  }
-
   const date = new Date()
 
-  const useExtra: LogExtra = {
+  const source = moreErrorDetail(new Error('n'))
+  const useExtra = {
     level: 'info',
     timestamp: date.getTime(),
-    source: 'NULL',
-    ...extra,
+    source: `${source}`,
   }
 
   const formatMessage: string[] = []
-  for (const message of messages.slice(0, hasCleanExtra ? messages.length - 1 : messages.length)) {
+  for (const message of messages) {
     let r = message
     if (_.isObject(message)) {
       r = JSON.stringify(message)
     }
+    else {
+      r = String(r)
+    }
     formatMessage.push(r)
   }
 
-  appendFile(LOG_PATH, ` [${useExtra.level!.toLocaleUpperCase()}] MESSAGE: ${formatMessage.join(' , ')} | SOURCE: ${useExtra.source ?? ''} | DETAIL: ${useExtra.details ?? 'NULL'} | IN ${date.toLocaleDateString()}:${date.toLocaleTimeString()}\n`)
+  appendFile(LOG_PATH, ` [${useExtra.level!.toLocaleUpperCase()}] : ${formatMessage.join(' , ')} \n [SOURCE]: ${useExtra.source} \n [TIME] ${date.toLocaleDateString()}:${date.toLocaleTimeString()}\n\n`)
 }
